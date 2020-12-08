@@ -1,0 +1,206 @@
+
+An Intro to cy testing
+
+//
+Installing cypress: 
+https://docs.cypress.io/guides/getting-started/installing-cypress.html#npm-install
+
+You will need node installed
+https://nodejs.org/en/download/
+
+
+    mac:
+        Using homebrew brew update:
+            brew update
+            brew install node
+
+        (npm or yarn)
+        https://classic.yarnpkg.com/en/docs/install/
+            brew install yarn
+    
+//
+Installing cypress:
+Make sure that you have already run npm init or have a node_modules folder or package.json file in the root of your project to ensure cypress is installed in the correct directory.
+
+    npm:
+        cd /your/project/path
+        npm install cypress --save-dev
+
+    yarn:
+        cd /your/project/path
+        yarn add cypress --dev
+
+//
+Opening cypress:
+
+    npm:
+        Full path:
+            ./node_modules/.bin/cypress open
+
+        if using npm > v5.2:
+            npx cypress open
+
+    yarn: 
+        yarn cypress open
+        
+//
+First Test:
+    Visit: https://suffapp.thesufferfest.com
+    Find the element with class: ‘.email’
+    Type cypresswebtestingdemo@gmail.com  
+    Find the element with class: ‘.password’
+    Type P@ssword!
+    Find the login button and click it
+    Get the URL
+    Assert it includes: /#!/home
+
+------------
+
+--
+Cypress is but isnt like jQuery
+https://docs.cypress.io/guides/core-concepts/introduction-to-cypress.html#Cypress-is-Like-jQuery
+    // This is fine, jQuery returns the element synchronously.
+    const $jqElement = $('.element')
+
+    // This will not work! Cypress does not return the element synchronously.
+    const $cyElement = cy.get('.element')
+
+--
+Best Practices with selectors
+https://docs.cypress.io/guides/references/best-practices.html#Selecting-Elements
+You may find yourself struggling to write good selectors because:
+    Your application uses dynamic ID’s and class names
+    Your tests break whenever there are CSS or content changes
+
+--
+Finding Selectors with the Test Runner
+To open the Selector Playground, click the  button next to the URL at the top of the runner. Hover over elements in your app to preview a unique selector for that element in the tooltip. Click on the element and its selector will appear at the top.
+
+--
+Switching to Contains in the Selector Playground
+You can also experiment with what cy.contains() would yield given a string of text. Click on cy.get and switch to cy.contains.
+
+Type in text to see which element it matches. Note that cy.contains() only yields the first element that matches the text, even if multiple elements on the page contain the text.
+
+--
+Cypress.SelectorPlayground
+https://docs.cypress.io/api/cypress-api/selector-playground-api.html#Syntax
+This tool that we are accessing via the Test Runner can be accessed and adjusted programmatically
+
+--
+Default Selector Priority:
+
+    data-cy
+    data-test
+    data-testid
+    id
+    class
+    tag
+    attributes
+    nth-child
+
+--
+Cypress.SelectorPlayground
+You can override the default selectors if needed like so:
+    Cypress.SelectorPlayground.defaults({
+    selectorPriority: ['class', 'id']
+    })
+
+    const $element = Cypress.$('button')
+    const selector = Cypress.SelectorPlayground.getSelector($element)
+
+--
+it.skip() and it.only()
+
+--
+Using .then() To Act On A Subject
+Want to jump into the command flow and get your hands on the subject directly? No problem, add a .then() to your command chain. When the previous command resolves, it will call your callback function with the yielded subject as the first argument.
+If you wish to continue chaining commands after your .then(), you’ll need to specify the subject you want to yield to those commands, which you can achieve with a return value other than null or undefined. Cypress will yield that to the next command for you.
+
+--
+Commands Are Asynchronous
+It is very important to understand that Cypress commands don’t do anything at the moment they are invoked, but rather enqueue themselves to be run later. This is what we mean when we say Cypress commands are asynchronous.
+
+--
+Writing Assertions
+There are two ways to write assertions in Cypress:
+
+Implicit Subjects: Using .should() or .and().
+Explicit Subjects: Using expect.
+
+--
+List of Assertions
+https://docs.cypress.io/guides/core-concepts/introduction-to-cypress.html#Default-Assertions
+Cypress bundles Chai, Chai-jQuery, and Sinon-Chai to provide built-in assertions. You can see a comprehensive list of them in the list of assertions reference. You can also write your own assertions as Chai plugins and use them in Cypress.
+
+--
+Why Should() is recommended
+The .should() command allows us to pass a callback function that takes the yielded subject as its first argument. This works like .then(), except Cypress automatically waits and retries for everything inside of the callback function to pass.
+
+Make sure .should() is safe
+When using a callback function with .should(), be sure that the entire function can be executed multiple times without side effects. Cypress applies its retry logic to these functions: if there’s a failure, it will repeatedly rerun the assertions until the timeout is reached. That means your code should be retry-safe. The technical term for this means your code must be idempotent.
+
+--
+Timeouts
+https://docs.cypress.io/guides/core-concepts/introduction-to-cypress.html#Implicit-Subjects
+The default timeout waits up to 4 seconds for an element to exist in the DOM
+
+ex. (Screenshot 5)
+    Queries for the element a containing 'Training Plans'
+    and waits up to 4 seconds for element 'a' to exist in the DOM
+    and waits up to 4 seconds for one of the 'a' elements to contain text: 'Training Plans'
+    and waits up to 4 seconds for it to contain the ui-sref attribute: 'training-plans'
+    and waits up to 4 seconds for it to contain the href attribute: '#!/training-plans'
+
+default Timeouts
+cy.visit() loads a remote page and does not resolve until all of the external resources complete their loading phase. This may take awhile, so its default timeout is set to 60000ms.
+cy.exec() runs a system command such as seeding a database. We expect this to potentially take a long time, and its default timeout is set to 60000ms.
+cy.wait() actually uses 2 different timeouts. When waiting for a routing alias, we wait for a matching request for 5000ms, and then additionally for the server’s response for 30000ms. We expect your application to make a matching request quickly, but we expect the server’s response to potentially take much longer.
+That leaves most other commands including all DOM based commands to time out by default after 4000ms.
+
+
+--
+Test Structure
+The test interface, borrowed from Mocha, provides describe(), context(), it() and specify().
+
+context() is identical to describe() and specify() is identical to it(), so choose whatever terminology works best for you.
+
+--
+Adding npm scripts
+While there’s nothing wrong with writing out the full path to the Cypress executable each time, it’s much easier and clearer to add Cypress commands to the scripts field in your package.json file.
+
+{
+  "scripts": {
+    "cypress:open": "cypress open"
+  }
+}
+Now you can invoke the command from your project root like so:
+
+npm run cypress:open
+…and Cypress will open right up for you.
+
+--
+Command Line Interface
+https://docs.cypress.io/guides/guides/command-line.html#cypress-open
+
+--
+Headless and Cypress Test Runner
+
+
+--
+cy.Location()
+https://docs.cypress.io/api/commands/location.html
+
+--
+hooks
+All before() hooks run (once)
+Any beforeEach() hooks run
+Tests run
+Any afterEach() hooks run
+All after() hooks run (once)
+
+
+
+
+
+
